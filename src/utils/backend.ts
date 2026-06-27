@@ -209,8 +209,8 @@ export let activeConfig: PipelineConfig = {
   brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || '',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
-  upstashRedisUrl: process.env.UPSTASH_REDIS_URL || '',
-  upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || '',
+  upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '',
+  upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '',
   sharedSecret: process.env.SHARED_SECRET || 'super_secret_bearer_token',
   useSimulatedApis: process.env.USE_SIMULATED_APIS === 'true' || !(process.env.BRIGHT_DATA_API_KEY && process.env.TELEGRAM_BOT_TOKEN)
 };
@@ -222,8 +222,8 @@ export async function loadConfig(): Promise<PipelineConfig> {
     brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || activeConfig.brightDataDatasetId,
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || activeConfig.telegramBotToken,
     telegramChatId: process.env.TELEGRAM_CHAT_ID || activeConfig.telegramChatId,
-    upstashRedisUrl: process.env.UPSTASH_REDIS_URL || activeConfig.upstashRedisUrl,
-    upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || activeConfig.upstashRedisToken,
+    upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || activeConfig.upstashRedisUrl,
+    upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || activeConfig.upstashRedisToken,
     sharedSecret: process.env.SHARED_SECRET || activeConfig.sharedSecret,
     useSimulatedApis: activeConfig.useSimulatedApis
   };
@@ -259,8 +259,8 @@ export async function updateActiveConfig(newConfig: Partial<PipelineConfig>) {
 
 // Lazy-loaded Redis/KV helper
 export function getRedis() {
-  const upstashRedisUrl = activeConfig.upstashRedisUrl || process.env.UPSTASH_REDIS_URL || '';
-  const upstashRedisToken = activeConfig.upstashRedisToken || process.env.UPSTASH_REDIS_TOKEN || '';
+  const upstashRedisUrl = activeConfig.upstashRedisUrl || process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '';
+  const upstashRedisToken = activeConfig.upstashRedisToken || process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
   
   if (upstashRedisUrl && upstashRedisToken) {
     try {
