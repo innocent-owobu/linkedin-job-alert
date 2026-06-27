@@ -1,6 +1,6 @@
 import { Redis } from '@upstash/redis';
-import { LinkedInJob, AlertBand, PipelineConfig, PipelineStatus } from '../types';
-import { matchesJobTitle, matchesGermany, resolveAlertState } from './parser';
+import { LinkedInJob, AlertBand, PipelineConfig, PipelineStatus } from '../types.js';
+import { matchesJobTitle, matchesGermany, resolveAlertState } from './parser.js';
 
 // In-memory fallback database for development when Upstash is not yet configured
 class MemoryRedisStore {

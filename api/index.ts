@@ -14,9 +14,9 @@ import {
   getSentTelegramAlerts, 
   getPipelineStatus,
   updatePipelineStatus
-} from '../src/utils/backend';
-import { resolveAlertState, parseApplicantCount, getAlertBand, isPostedWithinHours, matchesJobTitle, matchesGermany } from '../src/utils/parser';
-import { LinkedInJob, AlertBand } from '../src/types';
+} from '../src/utils/backend.js';
+import { resolveAlertState, parseApplicantCount, getAlertBand, isPostedWithinHours, matchesJobTitle, matchesGermany } from '../src/utils/parser.js';
+import { LinkedInJob, AlertBand } from '../src/types.js';
 
 const app = express();
 const PORT = 3000;
