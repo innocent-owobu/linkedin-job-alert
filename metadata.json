@@ -1,0 +1,6 @@
+{
+  "name": "LinkedIn Job Alert Pipeline",
+  "description": "Hourly job matching alert system for Germany matching Data and BI Analyst roles with low applicant counts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
