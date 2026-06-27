@@ -466,7 +466,7 @@ export async function sendTelegramAlert(
     isSimulated: !!(useSimulatedApis || !telegramBotToken || !telegramChatId)
   });
 
-  if (useSimulatedApis || !telegramBotToken || !telegramChatId) {
+  if (!telegramBotToken || !telegramChatId) {
     logToSystem(`[Telegram Alert Simulated] Alert sent for job: "${job.title}" at "${job.company}"`);
     return true;
   }
