@@ -299,26 +299,48 @@ export async function triggerBrightDataSearch(): Promise<string> {
   // Real Bright Data API structure for triggering a dataset scan by keywords or custom scraping
   // For standard LinkedIn Jobs "discover by keyword" dataset trigger:
   try {
-    const response = await fetch(`https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`, {
+    const isGlobalDataset = brightDataDatasetId.startsWith('gd_');
+    const triggerUrl = isGlobalDataset 
+      ? `https://api.brightdata.com/datasets/v3/trigger?dataset_id=${brightDataDatasetId}`
+      : `https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`;
+
+    const body = isGlobalDataset
+      ? JSON.stringify(
+          [
+            "Data Analyst",
+            "BI Analyst",
+            "Tableau Developer",
+            "Power BI Developer",
+            "Business Intelligence Analyst",
+            "Business Analyst",
+            "Insights and Report Specialist",
+            "Business Data Analyst"
+          ].map(keyword => ({
+            keyword,
+            location: "Germany"
+          }))
+        )
+      : JSON.stringify({
+          keywords: [
+            "Data Analyst",
+            "BI Analyst",
+            "Tableau Developer",
+            "Power BI Developer",
+            "Business Intelligence Analyst",
+            "Business Analyst",
+            "Insights and Report Specialist",
+            "Business Data Analyst"
+          ],
+          location: "Germany"
+        });
+
+    const response = await fetch(triggerUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${brightDataApiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        // Default target criteria: match Germany and keyword roles
-        keywords: [
-          "Data Analyst",
-          "BI Analyst",
-          "Tableau Developer",
-          "Power BI Developer",
-          "Business Intelligence Analyst",
-          "Business Analyst",
-          "Insights and Report Specialist",
-          "Business Data Analyst"
-        ],
-        location: "Germany"
-      })
+      body
     });
 
     if (!response.ok) {
@@ -362,10 +384,12 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
   logToSystem(`Polling Bright Data results for snapshot ${snapshotId}...`);
 
   try {
-    // Real Bright Data Dataset results endpoint.
-    // Bright Data DCA dataset retrieval format:
-    // GET https://api.brightdata.com/dca/dataset?id={snapshotId}
-    const response = await fetch(`https://api.brightdata.com/dca/dataset?id=${snapshotId}`, {
+    const isGlobalDataset = activeConfig.brightDataDatasetId.startsWith('gd_');
+    const fetchUrl = isGlobalDataset 
+      ? `https://api.brightdata.com/datasets/v3/snapshot/${snapshotId}?format=json`
+      : `https://api.brightdata.com/dca/dataset?id=${snapshotId}`;
+
+    const response = await fetch(fetchUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${brightDataApiKey}`
