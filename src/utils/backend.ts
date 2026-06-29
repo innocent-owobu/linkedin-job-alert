@@ -299,7 +299,7 @@ export async function triggerBrightDataSearch(): Promise<string> {
   // Real Bright Data API structure for triggering a dataset scan by keywords or custom scraping
   // For standard LinkedIn Jobs "discover by keyword" dataset trigger:
   try {
-    const isGlobalDataset = brightDataDatasetId.startsWith('gd_');
+    const isGlobalDataset = (brightDataDatasetId || '').startsWith('gd_');
     const triggerUrl = isGlobalDataset 
       ? `https://api.brightdata.com/datasets/v3/trigger?dataset_id=${brightDataDatasetId}`
       : `https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`;
@@ -385,7 +385,7 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
   logToSystem(`Polling Bright Data results for snapshot ${snapshotId}...`);
 
   try {
-    const isGlobalDataset = activeConfig.brightDataDatasetId.startsWith('gd_');
+    const isGlobalDataset = (activeConfig.brightDataDatasetId || '').startsWith('gd_');
     const fetchUrl = isGlobalDataset 
       ? `https://api.brightdata.com/datasets/v3/snapshot/${snapshotId}?format=json`
       : `https://api.brightdata.com/dca/dataset?id=${snapshotId}`;
