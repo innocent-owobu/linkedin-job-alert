@@ -305,8 +305,8 @@ export async function triggerBrightDataSearch(): Promise<string> {
       : `https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`;
 
     const body = isGlobalDataset
-      ? JSON.stringify(
-          [
+      ? JSON.stringify({
+          input: [
             "Data Analyst",
             "BI Analyst",
             "Tableau Developer",
@@ -317,9 +317,10 @@ export async function triggerBrightDataSearch(): Promise<string> {
             "Business Data Analyst"
           ].map(keyword => ({
             keyword,
-            location: "Germany"
+            location: "Germany",
+            country: "DE"
           }))
-        )
+        })
       : JSON.stringify({
           keywords: [
             "Data Analyst",
