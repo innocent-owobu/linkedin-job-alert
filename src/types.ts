@@ -28,6 +28,7 @@ export interface PipelineConfig {
   upstashRedisToken: string;
   sharedSecret: string;
   useSimulatedApis: boolean;
+  apifyToken?: string;
 }
 
 export interface PipelineStatus {

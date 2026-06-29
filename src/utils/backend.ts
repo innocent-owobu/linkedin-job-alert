@@ -207,12 +207,13 @@ export async function updatePipelineStatus(updates: Partial<PipelineStatus>): Pr
 export let activeConfig: PipelineConfig = {
   brightDataApiKey: process.env.BRIGHT_DATA_API_KEY || '',
   brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || '',
+  apifyToken: process.env.APIFY_TOKEN || '',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
   upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '',
   upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '',
   sharedSecret: process.env.SHARED_SECRET || 'super_secret_bearer_token',
-  useSimulatedApis: process.env.USE_SIMULATED_APIS === 'true' || !(process.env.BRIGHT_DATA_API_KEY && process.env.TELEGRAM_BOT_TOKEN)
+  useSimulatedApis: process.env.USE_SIMULATED_APIS === 'true' || !(process.env.APIFY_TOKEN || (process.env.BRIGHT_DATA_API_KEY && process.env.TELEGRAM_BOT_TOKEN))
 };
 
 export async function loadConfig(): Promise<PipelineConfig> {
@@ -220,6 +221,7 @@ export async function loadConfig(): Promise<PipelineConfig> {
   activeConfig = {
     brightDataApiKey: process.env.BRIGHT_DATA_API_KEY || activeConfig.brightDataApiKey,
     brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || activeConfig.brightDataDatasetId,
+    apifyToken: process.env.APIFY_TOKEN || activeConfig.apifyToken,
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || activeConfig.telegramBotToken,
     telegramChatId: process.env.TELEGRAM_CHAT_ID || activeConfig.telegramChatId,
     upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || activeConfig.upstashRedisUrl,
@@ -277,27 +279,72 @@ export function getRedis() {
 }
 
 /**
- * Triggers Bright Data search.
- * In a real scenario, calls Bright Data Trigger API.
+ * Triggers search (Apify or Bright Data depending on config).
  * In simulation mode, returns a mock snapshot ID.
  */
 export async function triggerBrightDataSearch(): Promise<string> {
-  const { brightDataApiKey, brightDataDatasetId, useSimulatedApis } = activeConfig;
+  const { brightDataApiKey, brightDataDatasetId, apifyToken, useSimulatedApis } = activeConfig;
 
   if (useSimulatedApis) {
     const mockId = `bd_snap_${Math.random().toString(36).substring(2, 10)}`;
-    logToSystem(`[Simulation] Triggered Bright Data search. Snapshot ID generated: ${mockId}`);
+    logToSystem(`[Simulation] Triggered search. Run ID generated: ${mockId}`);
     return mockId;
   }
 
+  // APIFY TRIGGER PIPELINE
+  if (apifyToken) {
+    logToSystem("Triggering Apify LinkedIn Jobs Scraper...");
+    try {
+      const searchKeywords = [
+        "Data Analyst",
+        "BI Analyst",
+        "Tableau Developer",
+        "Power BI Developer",
+        "Business Intelligence Analyst",
+        "Business Analyst",
+        "Insights and Report Specialist",
+        "Business Data Analyst"
+      ];
+      
+      const urls = searchKeywords.map(keyword => 
+        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keyword)}&location=Germany`
+      );
+
+      const response = await fetch('https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=' + apifyToken, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          urls,
+          count: 20
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Apify responded with code ${response.status}: ${errText}`);
+      }
+
+      const resData = await response.json();
+      const runId = resData.data.id;
+      if (!runId) {
+        throw new Error(`No run ID returned in Apify response: ${JSON.stringify(resData)}`);
+      }
+
+      logToSystem(`Apify search successfully triggered. Run ID: ${runId}`);
+      return runId;
+    } catch (err: any) {
+      logToSystem(`Apify trigger failed: ${err.message}`);
+      throw err;
+    }
+  }
+
+  // BRIGHT DATA FALLBACK
   if (!brightDataApiKey || !brightDataDatasetId) {
-    throw new Error('Bright Data API Key and Dataset ID are required. Configure them or enable simulation.');
+    throw new Error('Apify Token or Bright Data Credentials are required. Configure them or enable simulation.');
   }
 
   logToSystem(`Triggering Bright Data search for dataset ${brightDataDatasetId}...`);
   
-  // Real Bright Data API structure for triggering a dataset scan by keywords or custom scraping
-  // For standard LinkedIn Jobs "discover by keyword" dataset trigger:
   try {
     const isGlobalDataset = (brightDataDatasetId || '').startsWith('gd_');
     const triggerUrl = isGlobalDataset 
@@ -350,7 +397,6 @@ export async function triggerBrightDataSearch(): Promise<string> {
     }
 
     const data = await response.json() as any;
-    // Bright Data normally returns snapshot ID in field "snapshot_id" or "id"
     const snapshotId = data.snapshot_id || data.id;
     if (!snapshotId) {
       throw new Error(`No snapshot ID returned in Bright Data response: ${JSON.stringify(data)}`);
@@ -365,19 +411,70 @@ export async function triggerBrightDataSearch(): Promise<string> {
 }
 
 /**
- * Downloads results for a Bright Data snapshot.
- * In real mode, polls Bright Data results endpoint.
- * In simulation mode, returns a custom set of mock LinkedIn jobs spanning various boundary cases.
+ * Downloads results for a scraper snapshot (supports Apify and Bright Data).
  */
 export async function fetchBrightDataResults(snapshotId: string): Promise<LinkedInJob[]> {
-  const { brightDataApiKey, useSimulatedApis } = activeConfig;
+  const { brightDataApiKey, apifyToken, useSimulatedApis } = activeConfig;
 
   if (useSimulatedApis) {
-    logToSystem(`[Simulation] Simulating preparation of Bright Data dataset for ID ${snapshotId}...`);
-    // Return sample jobs with diverse applicant counts and relative posting dates
+    logToSystem(`[Simulation] Simulating preparation of dataset for ID ${snapshotId}...`);
     return getSimulatedJobs();
   }
 
+  // APIFY RESULTS PIPELINE
+  if (apifyToken) {
+    logToSystem(`Polling Apify results for run ${snapshotId}...`);
+    try {
+      const res = await fetch(`https://api.apify.com/v2/actor-runs/${snapshotId}?token=${apifyToken}`);
+      if (!res.ok) {
+        throw new Error(`Apify status check failed (HTTP ${res.status})`);
+      }
+      
+      const runData = await res.json();
+      const status = runData.data.status;
+      
+      if (status === 'READY' || status === 'RUNNING') {
+        logToSystem(`Apify run ${snapshotId} is still processing (Status: ${status}). Please check back in a few minutes.`);
+        return [];
+      }
+      
+      if (status !== 'SUCCEEDED') {
+        throw new Error(`Apify run ended with status: ${status}`);
+      }
+
+      logToSystem(`Apify run ${snapshotId} completed! Downloading dataset...`);
+      const itemsRes = await fetch(`https://api.apify.com/v2/actor-runs/${snapshotId}/dataset/items?token=${apifyToken}`);
+      if (!itemsRes.ok) {
+        throw new Error(`Apify dataset fetch failed (HTTP ${itemsRes.status})`);
+      }
+      
+      const items = await itemsRes.json() as any[];
+      return items.map((item, idx) => {
+        const id = item.id || item.job_id || `job_${idx}_${Math.random().toString(36).substring(2, 6)}`;
+        const title = item.title || item.job_title || '';
+        const company = item.company || item.companyName || item.company_name || 'Unknown Company';
+        const location = item.location || 'Germany';
+        const postedAt = item.posted_time || item.post_date || item.postedTimeText || 'just now';
+        const applicantCountRaw = item.applicants || item.applicant_count || item.applicantsCount || null;
+        const applyUrl = item.url || item.job_url || `https://www.linkedin.com/jobs/view/${id}`;
+        
+        return {
+          id,
+          title,
+          company,
+          location,
+          postedAt,
+          applicantCountRaw,
+          applyUrl
+        };
+      });
+    } catch (err: any) {
+      logToSystem(`Apify fetch failed: ${err.message}`);
+      throw err;
+    }
+  }
+
+  // BRIGHT DATA RESULTS PIPELINE
   if (!brightDataApiKey) {
     throw new Error('Bright Data API Key is required.');
   }
@@ -398,7 +495,6 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
     });
 
     if (response.status === 202) {
-      // 202 Accepted indicates Bright Data is still crawling or compiling
       logToSystem(`Bright Data snapshot ${snapshotId} is still processing (HTTP 202). Please check back in a few minutes.`);
       return [];
     }
