@@ -59,7 +59,7 @@ export default function App() {
   const [runningTests, setRunningTests] = useState(false);
   const [time, setTime] = useState<string>('');
 
-  const logEndRef = useRef<HTMLDivElement>(null);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   // Sync times
   useEffect(() => {
@@ -121,7 +121,9 @@ export default function App() {
 
   // Scroll to bottom of terminal
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
   }, [systemLogs]);
 
   // Handle trigger (Step 1)
@@ -572,7 +574,7 @@ export default function App() {
               </button>
             </div>
 
-            <div className="bg-[#0f172a] rounded-xl border border-slate-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[400px] shadow-inner">
+            <div ref={logContainerRef} className="bg-[#0f172a] rounded-xl border border-slate-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[400px] shadow-inner">
               {systemLogs.length === 0 ? (
                 <div className="text-slate-600 italic flex items-center justify-center h-full">Waiting for operations...</div>
               ) : (
@@ -591,7 +593,6 @@ export default function App() {
                       </div>
                     );
                   })}
-                  <div ref={logEndRef} />
                 </div>
               )}
             </div>
