@@ -299,7 +299,7 @@ export async function triggerBrightDataSearch(): Promise<string> {
   // Real Bright Data API structure for triggering a dataset scan by keywords or custom scraping
   // For standard LinkedIn Jobs "discover by keyword" dataset trigger:
   try {
-    const response = await fetch(`https://api.brightdata.com/dca/trigger?dataset=${brightDataDatasetId}`, {
+    const response = await fetch(`https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${brightDataApiKey}`,
