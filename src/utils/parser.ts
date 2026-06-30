@@ -52,10 +52,10 @@ export function getAlertBand(count: number | null): AlertBand {
   if (count === null) {
     return 'unknown';
   }
-  if (count <= 15) {
+  if (count <= 25) {
     return 'low';
   }
-  if (count >= 16 && count <= 100) {
+  if (count >= 26 && count <= 100) {
     return 'mid';
   }
   return 'high';

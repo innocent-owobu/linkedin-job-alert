@@ -454,7 +454,7 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
         const title = item.title || item.job_title || '';
         const company = item.company || item.companyName || item.company_name || 'Unknown Company';
         const location = item.location || 'Germany';
-        const postedAt = item.posted_time || item.post_date || item.postedTimeText || 'just now';
+        const postedAt = item.postedAt || item.posted_time || item.post_date || item.postedTimeText || 'just now';
         const applicantCountRaw = item.applicants || item.applicant_count || item.applicantsCount || null;
         const applyUrl = item.url || item.job_url || `https://www.linkedin.com/jobs/view/${id}`;
         
