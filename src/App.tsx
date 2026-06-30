@@ -719,6 +719,53 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* LATEST JOB ALERTS LIST */}
+                  <div className="bg-slate-800/30 border border-slate-800/80 p-5 rounded-2xl space-y-4">
+                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5" /> Recent Alerts Feed
+                    </h4>
+                    
+                    {alerts.length === 0 ? (
+                      <p className="text-slate-500 italic text-xs py-4 text-center">No alerts sent yet. Automation is active.</p>
+                    ) : (
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                        {alerts.slice(0, 10).map((alertItem, index) => {
+                          const title = alertItem.message.match(/📌 \*Title:\* (.*)/)?.[1] || 'Unknown Title';
+                          const company = alertItem.message.match(/🏢 \*Company:\* (.*)/)?.[1] || 'Unknown Company';
+                          const location = alertItem.message.match(/📍 \*Location:\* (.*)/)?.[1] || 'Germany';
+                          const applyUrl = alertItem.message.match(/🔗 \[Apply Here on LinkedIn\]\((.*)\)/)?.[1] || '#';
+                          const applicants = alertItem.message.match(/📊 \*Applicants:\* (.*)/)?.[1] || 'Low Competition';
+                          
+                          return (
+                            <div key={index} className="bg-[#0f172a] border border-slate-800 p-3.5 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all hover:border-slate-700/80">
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-white leading-tight">{title}</h5>
+                                <p className="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-indigo-400 font-semibold">{company}</span>
+                                  <span className="text-slate-600">•</span>
+                                  <span>{location}</span>
+                                  <span className="text-slate-600">•</span>
+                                  <span className="text-emerald-400 font-mono">{applicants}</span>
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3 self-end md:self-center">
+                                <span className="text-[9px] font-mono text-slate-500">{alertItem.timestamp}</span>
+                                <a 
+                                  href={applyUrl} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[10px] font-semibold text-white rounded-lg transition-all"
+                                >
+                                  Apply
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="bg-slate-900/50 border border-slate-800/80 p-4 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center">
