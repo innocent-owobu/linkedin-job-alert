@@ -307,7 +307,7 @@ export async function triggerBrightDataSearch(): Promise<string> {
       ];
       
       const urls = searchKeywords.map(keyword => 
-        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keyword)}&location=Germany`
+        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keyword)}&location=Germany&f_TPR=r86400&sortBy=DD`
       );
 
       const response = await fetch('https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=' + apifyToken, {
@@ -315,7 +315,7 @@ export async function triggerBrightDataSearch(): Promise<string> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           urls,
-          count: 20
+          count: 40
         })
       });
 
