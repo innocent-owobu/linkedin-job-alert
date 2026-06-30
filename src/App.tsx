@@ -59,6 +59,8 @@ export default function App() {
   const [runningTests, setRunningTests] = useState(false);
   const [time, setTime] = useState<string>('');
 
+  const [leftPanelMode, setLeftPanelMode] = useState<'jobs' | 'logs'>('jobs');
+
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   // Sync times
@@ -563,39 +565,103 @@ export default function App() {
           {/* REALTIME SYSTEM LOGS TERMINAL CARD */}
           <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl flex-1 flex flex-col min-h-[350px]">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-              <h2 className="font-semibold text-white flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">
-                <Terminal className="w-4 h-4 text-emerald-400" /> Pipeline Terminal Log
-              </h2>
-              <button 
-                onClick={() => setSystemLogs([])} 
-                className="text-[10px] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 bg-slate-900 px-2.5 py-1 rounded-md transition-all font-mono"
-              >
-                Clear
-              </button>
-            </div>
-
-            <div ref={logContainerRef} className="bg-[#0f172a] rounded-xl border border-slate-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[400px] shadow-inner">
-              {systemLogs.length === 0 ? (
-                <div className="text-slate-600 italic flex items-center justify-center h-full">Waiting for operations...</div>
-              ) : (
-                <div className="space-y-1">
-                  {systemLogs.map((log, index) => {
-                    let color = 'text-slate-300';
-                    if (log.includes('CRON TRIGGERED')) color = 'text-amber-300 font-semibold';
-                    else if (log.includes('Step 1 Complete') || log.includes('Step 2 Completed')) color = 'text-green-400 font-semibold';
-                    else if (log.includes('Alert sent') || log.includes('successfully delivered')) color = 'text-indigo-300';
-                    else if (log.includes('Simulation')) color = 'text-slate-500';
-                    else if (log.includes('Failed') || log.includes('Error') || log.includes('error')) color = 'text-rose-400';
-                    
-                    return (
-                      <div key={index} className={`${color} border-l border-slate-800 pl-2`}>
-                        {log}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLeftPanelMode('jobs')}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                    leftPanelMode === 'jobs'
+                      ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/35'
+                      : 'text-slate-400 hover:text-slate-200 border border-transparent hover:bg-slate-800/40'
+                  }`}
+                >
+                  Matched Jobs Feed
+                </button>
+                <button
+                  onClick={() => setLeftPanelMode('logs')}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                    leftPanelMode === 'logs'
+                      ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/35'
+                      : 'text-slate-400 hover:text-slate-200 border border-transparent hover:bg-slate-800/40'
+                  }`}
+                >
+                  System Logs
+                </button>
+              </div>
+              
+              {leftPanelMode === 'logs' && (
+                <button 
+                  onClick={() => setSystemLogs([])} 
+                  className="text-[10px] text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 bg-slate-900 px-2.5 py-1 rounded-md transition-all font-mono"
+                >
+                  Clear
+                </button>
               )}
             </div>
+
+            {leftPanelMode === 'jobs' ? (
+              <div className="flex-1 overflow-y-auto space-y-3 max-h-[400px] pr-1">
+                {alerts.length === 0 ? (
+                  <div className="text-slate-500 italic flex items-center justify-center h-full py-20 text-xs">Waiting for job matches...</div>
+                ) : (
+                  alerts.map((alertItem, index) => {
+                    const title = alertItem.message.match(/📌 \*Title:\* (.*)/)?.[1] || 'Unknown Title';
+                    const company = alertItem.message.match(/🏢 \*Company:\* (.*)/)?.[1] || 'Unknown Company';
+                    const location = alertItem.message.match(/📍 \*Location:\* (.*)/)?.[1] || 'Germany';
+                    const applyUrl = alertItem.message.match(/🔗 \[Apply Here on LinkedIn\]\((.*)\)/)?.[1] || '#';
+                    const applicants = alertItem.message.match(/📊 \*Applicants:\* (.*)/)?.[1] || 'Low Competition';
+                    
+                    return (
+                      <div key={index} className="bg-[#0f172a] border border-slate-800 p-3.5 rounded-xl flex flex-col gap-2 transition-all hover:border-slate-700/80">
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-bold text-white leading-tight">{title}</h4>
+                          <div className="text-[10px] text-slate-400 flex flex-col gap-0.5">
+                            <span className="text-indigo-400 font-semibold">{company}</span>
+                            <span>{location}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center mt-1 border-t border-slate-800/60 pt-2">
+                          <span className="text-[9px] font-mono text-emerald-400 font-bold">{applicants}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-mono text-slate-500">{alertItem.timestamp}</span>
+                            <a 
+                              href={applyUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[9px] font-bold text-white rounded-md transition-all"
+                            >
+                              Apply
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : (
+              <div ref={logContainerRef} className="bg-[#0f172a] rounded-xl border border-slate-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[400px] shadow-inner">
+                {systemLogs.length === 0 ? (
+                  <div className="text-slate-600 italic flex items-center justify-center h-full">Waiting for operations...</div>
+                ) : (
+                  <div className="space-y-1">
+                    {systemLogs.map((log, index) => {
+                      let color = 'text-slate-300';
+                      if (log.includes('CRON TRIGGERED')) color = 'text-amber-300 font-semibold';
+                      else if (log.includes('Step 1 Complete') || log.includes('Step 2 Completed')) color = 'text-green-400 font-semibold';
+                      else if (log.includes('Alert sent') || log.includes('successfully delivered')) color = 'text-indigo-300';
+                      else if (log.includes('Simulation')) color = 'text-slate-500';
+                      else if (log.includes('Failed') || log.includes('Error') || log.includes('error')) color = 'text-rose-400';
+                      
+                      return (
+                        <div key={index} className={`${color} border-l border-slate-800 pl-2`}>
+                          {log}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
         </section>
