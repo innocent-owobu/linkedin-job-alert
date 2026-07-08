@@ -339,25 +339,18 @@ export async function triggerBrightDataSearch(): Promise<string> {
   try {
     const isGlobalDataset = (brightDataDatasetId || '').startsWith('gd_');
     const triggerUrl = isGlobalDataset 
-      ? `https://api.brightdata.com/datasets/v3/trigger?dataset_id=${brightDataDatasetId}`
+      ? `https://api.brightdata.com/datasets/v3/scrape?dataset_id=${brightDataDatasetId}&notify=false&include_errors=true&type=discover_new&discover_by=keyword`
       : `https://api.brightdata.com/dca/trigger?collector=${brightDataDatasetId}`;
+
+    const booleanQuery = '(\"Data Analyst\" OR \"BI Analyst\" OR \"Tableau Developer\" OR \"Power BI Developer\" OR \"Business Intelligence Analyst\" OR \"Business Analyst\" OR \"Insights and Report Specialist\" OR \"Business Data Analyst\")';
 
     const body = isGlobalDataset
       ? JSON.stringify({
-          input: [
-            "Data Analyst",
-            "BI Analyst",
-            "Tableau Developer",
-            "Power BI Developer",
-            "Business Intelligence Analyst",
-            "Business Analyst",
-            "Insights and Report Specialist",
-            "Business Data Analyst"
-          ].map(keyword => ({
-            keyword,
+          input: [{
+            keyword: booleanQuery,
             location: "Germany",
             country: "DE"
-          }))
+          }]
         })
       : JSON.stringify({
           keywords: [
