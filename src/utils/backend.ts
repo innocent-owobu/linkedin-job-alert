@@ -295,20 +295,11 @@ export async function triggerBrightDataSearch(): Promise<string> {
   if (apifyToken) {
     logToSystem("Triggering Apify LinkedIn Jobs Scraper...");
     try {
-      const searchKeywords = [
-        "Data Analyst",
-        "BI Analyst",
-        "Tableau Developer",
-        "Power BI Developer",
-        "Business Intelligence Analyst",
-        "Business Analyst",
-        "Insights and Report Specialist",
-        "Business Data Analyst"
-      ];
+      const booleanQuery = '(\"Data Analyst\" OR \"BI Analyst\" OR \"Tableau Developer\" OR \"Power BI Developer\" OR \"Business Intelligence Analyst\" OR \"Business Analyst\" OR \"Insights and Report Specialist\" OR \"Business Data Analyst\")';
       
-      const urls = searchKeywords.map(keyword => 
-        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keyword)}&location=Germany&f_TPR=r86400&sortBy=DD`
-      );
+      const urls = [
+        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(booleanQuery)}&location=Germany&f_TPR=r86400&sortBy=DD`
+      ];
 
       const response = await fetch('https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=' + apifyToken, {
         method: 'POST',
