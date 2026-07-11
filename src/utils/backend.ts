@@ -252,6 +252,10 @@ export async function loadConfig(): Promise<PipelineConfig> {
       console.error('Failed to load configuration from Redis:', e);
     }
   }
+
+  // Ensure any loaded config gets filtered for the old blocked token
+  activeConfig.apifyToken = getEffectiveApifyToken(activeConfig.apifyToken);
+
   return activeConfig;
 }
 
