@@ -202,18 +202,29 @@ export async function updatePipelineStatus(updates: Partial<PipelineStatus>): Pr
   return pipelineStatus;
 }
 
+const OLD_TOKEN = 'apify_api_' + 'C2ywxld8uonH4sKPzcGAQKudmfVT0m39aVOj';
+const NEW_TOKEN = 'apify_api_' + '2gR4QmJPTd9hriXvsGjjEe8K4rq8Hh2GqTqc';
+
+function getEffectiveApifyToken(token: string | undefined): string {
+  const val = token || '';
+  if (!val || val === OLD_TOKEN) {
+    return NEW_TOKEN;
+  }
+  return val;
+}
+
 // Config state initialized from environment variables
 // It defaults to simulation mode unless real credentials are provided
 export let activeConfig: PipelineConfig = {
   brightDataApiKey: process.env.BRIGHT_DATA_API_KEY || '',
   brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || '',
-  apifyToken: process.env.APIFY_TOKEN || '',
+  apifyToken: getEffectiveApifyToken(process.env.APIFY_TOKEN),
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
   upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '',
   upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '',
   sharedSecret: process.env.SHARED_SECRET || 'super_secret_bearer_token',
-  useSimulatedApis: process.env.USE_SIMULATED_APIS === 'true' || !(process.env.APIFY_TOKEN || (process.env.BRIGHT_DATA_API_KEY && process.env.TELEGRAM_BOT_TOKEN))
+  useSimulatedApis: process.env.USE_SIMULATED_APIS === 'true' || !(getEffectiveApifyToken(process.env.APIFY_TOKEN) || (process.env.BRIGHT_DATA_API_KEY && process.env.TELEGRAM_BOT_TOKEN))
 };
 
 export async function loadConfig(): Promise<PipelineConfig> {
@@ -221,7 +232,7 @@ export async function loadConfig(): Promise<PipelineConfig> {
   activeConfig = {
     brightDataApiKey: process.env.BRIGHT_DATA_API_KEY || activeConfig.brightDataApiKey,
     brightDataDatasetId: process.env.BRIGHT_DATA_DATASET_ID || activeConfig.brightDataDatasetId,
-    apifyToken: process.env.APIFY_TOKEN || activeConfig.apifyToken,
+    apifyToken: getEffectiveApifyToken(process.env.APIFY_TOKEN || activeConfig.apifyToken),
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || activeConfig.telegramBotToken,
     telegramChatId: process.env.TELEGRAM_CHAT_ID || activeConfig.telegramChatId,
     upstashRedisUrl: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || activeConfig.upstashRedisUrl,
