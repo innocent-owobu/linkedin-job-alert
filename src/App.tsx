@@ -59,6 +59,28 @@ export default function App() {
   const [runningTests, setRunningTests] = useState(false);
   const [time, setTime] = useState<string>('');
 
+  const [clickedJobs, setClickedJobs] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('sentinel_clicked_jobs');
+      return saved ? new Set(JSON.parse(saved)) : new Set<string>();
+    } catch (e) {
+      return new Set<string>();
+    }
+  });
+
+  const handleJobClick = (jobId: string) => {
+    setClickedJobs(prev => {
+      const next = new Set(prev);
+      next.add(jobId);
+      try {
+        localStorage.setItem('sentinel_clicked_jobs', JSON.stringify(Array.from(next)));
+      } catch (e) {
+        console.error('Failed to save clicked jobs:', e);
+      }
+      return next;
+    });
+  };
+
   const [leftPanelMode, setLeftPanelMode] = useState<'jobs' | 'logs'>('jobs');
 
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -610,11 +632,18 @@ export default function App() {
                     const applyUrl = alertItem.message.match(/🔗 \[Apply Here on LinkedIn\]\((.*)\)/)?.[1] || '#';
                     const applicants = alertItem.message.match(/📊 \*Applicants:\* (.*)/)?.[1] || 'Low Competition';
                     
+                    const isApplied = clickedJobs.has(alertItem.jobId);
+                    
                     return (
-                      <div key={index} className="bg-[#121212] border border-neutral-800 p-3 rounded-xl flex flex-col gap-1.5 transition-all hover:border-neutral-700/80">
+                      <div key={index} className={`bg-[#121212] border border-neutral-800 p-3 rounded-xl flex flex-col gap-1.5 transition-all hover:border-neutral-700/80 ${
+                        isApplied ? 'opacity-55 hover:opacity-85' : ''
+                      }`}>
                         <div className="flex justify-between items-start gap-2">
                           <div className="space-y-0.5 flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-white leading-tight truncate" title={title}>{title}</h4>
+                            <h4 className={`text-xs font-bold leading-tight truncate ${isApplied ? 'text-neutral-500' : 'text-white'}`} title={title}>
+                              {isApplied && <span className="text-emerald-500 mr-1 font-sans">✓</span>}
+                              {title}
+                            </h4>
                             <div className="text-[10px] text-neutral-400 flex items-center gap-1.5 flex-wrap">
                               <span className="text-indigo-400 font-semibold truncate max-w-[120px]">{company}</span>
                               <span className="text-neutral-600">•</span>
@@ -625,9 +654,14 @@ export default function App() {
                             href={applyUrl} 
                             target="_blank" 
                             rel="noreferrer" 
-                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[9px] font-bold text-white rounded-md transition-all flex-shrink-0"
+                            onClick={() => handleJobClick(alertItem.jobId)}
+                            className={`px-2.5 py-1 text-[9px] font-bold rounded-md transition-all flex-shrink-0 ${
+                              isApplied
+                                ? 'bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-neutral-700'
+                                : 'bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white'
+                            }`}
                           >
-                            Apply
+                            {isApplied ? 'Applied' : 'Apply'}
                           </a>
                         </div>
                         
@@ -804,10 +838,17 @@ export default function App() {
                           const applyUrl = alertItem.message.match(/🔗 \[Apply Here on LinkedIn\]\((.*)\)/)?.[1] || '#';
                           const applicants = alertItem.message.match(/📊 \*Applicants:\* (.*)/)?.[1] || 'Low Competition';
                           
+                          const isApplied = clickedJobs.has(alertItem.jobId);
+                          
                           return (
-                            <div key={index} className="bg-[#121212] border border-neutral-800 p-3.5 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all hover:border-neutral-700/80">
+                            <div key={index} className={`bg-[#121212] border border-neutral-800 p-3.5 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all hover:border-neutral-700/80 ${
+                              isApplied ? 'opacity-55 hover:opacity-85' : ''
+                            }`}>
                               <div className="space-y-1">
-                                <h5 className="text-xs font-bold text-white leading-tight">{title}</h5>
+                                <h5 className={`text-xs font-bold leading-tight ${isApplied ? 'text-neutral-500' : 'text-white'}`}>
+                                  {isApplied && <span className="text-emerald-500 mr-1.5 font-sans">✓</span>}
+                                  {title}
+                                </h5>
                                 <p className="text-[10px] text-neutral-400 flex items-center gap-1.5 flex-wrap">
                                   <span className="text-indigo-400 font-semibold">{company}</span>
                                   <span className="text-slate-600">•</span>
@@ -822,9 +863,14 @@ export default function App() {
                                   href={applyUrl} 
                                   target="_blank" 
                                   rel="noreferrer" 
-                                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[10px] font-semibold text-white rounded-lg transition-all"
+                                  onClick={() => handleJobClick(alertItem.jobId)}
+                                  className={`px-3 py-1.5 text-[10px] font-semibold rounded-lg transition-all ${
+                                    isApplied
+                                      ? 'bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-neutral-700'
+                                      : 'bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white'
+                                  }`}
                                 >
-                                  Apply
+                                  {isApplied ? 'Applied' : 'Apply'}
                                 </a>
                               </div>
                             </div>
