@@ -599,7 +599,7 @@ export default function App() {
             </div>
 
             {leftPanelMode === 'jobs' ? (
-              <div className="flex-1 overflow-y-auto space-y-3 max-h-[400px] pr-1">
+              <div className="flex-1 overflow-y-auto space-y-3 max-h-[780px] pr-1">
                 {alerts.length === 0 ? (
                   <div className="text-neutral-500 italic flex items-center justify-center h-full py-20 text-xs">Waiting for job matches...</div>
                 ) : (
@@ -611,27 +611,29 @@ export default function App() {
                     const applicants = alertItem.message.match(/📊 \*Applicants:\* (.*)/)?.[1] || 'Low Competition';
                     
                     return (
-                      <div key={index} className="bg-[#121212] border border-neutral-800 p-3.5 rounded-xl flex flex-col gap-2 transition-all hover:border-neutral-700/80">
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-bold text-white leading-tight">{title}</h4>
-                          <div className="text-[10px] text-neutral-400 flex flex-col gap-0.5">
-                            <span className="text-indigo-400 font-semibold">{company}</span>
-                            <span>{location}</span>
+                      <div key={index} className="bg-[#121212] border border-neutral-800 p-3 rounded-xl flex flex-col gap-1.5 transition-all hover:border-neutral-700/80">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="space-y-0.5 flex-1 min-w-0">
+                            <h4 className="text-xs font-bold text-white leading-tight truncate" title={title}>{title}</h4>
+                            <div className="text-[10px] text-neutral-400 flex items-center gap-1.5 flex-wrap">
+                              <span className="text-indigo-400 font-semibold truncate max-w-[120px]">{company}</span>
+                              <span className="text-neutral-600">•</span>
+                              <span className="truncate max-w-[150px]">{location}</span>
+                            </div>
                           </div>
+                          <a 
+                            href={applyUrl} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[9px] font-bold text-white rounded-md transition-all flex-shrink-0"
+                          >
+                            Apply
+                          </a>
                         </div>
-                        <div className="flex justify-between items-center mt-1 border-t border-neutral-800/60 pt-2">
-                          <span className="text-[9px] font-mono text-emerald-400 font-bold">{applicants}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[8px] font-mono text-neutral-500">{alertItem.timestamp}</span>
-                            <a 
-                              href={applyUrl} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-[9px] font-bold text-white rounded-md transition-all"
-                            >
-                              Apply
-                            </a>
-                          </div>
+                        
+                        <div className="flex justify-between items-center border-t border-neutral-800/60 pt-1.5 text-[9px] font-mono">
+                          <span className="text-emerald-400 font-bold">{applicants}</span>
+                          <span className="text-neutral-500">{alertItem.timestamp}</span>
                         </div>
                       </div>
                     );
@@ -639,7 +641,7 @@ export default function App() {
                 )}
               </div>
             ) : (
-              <div ref={logContainerRef} className="bg-[#121212] rounded-xl border border-neutral-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[400px] shadow-inner">
+              <div ref={logContainerRef} className="bg-[#121212] rounded-xl border border-neutral-800 p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed max-h-[780px] shadow-inner">
                 {systemLogs.length === 0 ? (
                   <div className="text-slate-600 italic flex items-center justify-center h-full">Waiting for operations...</div>
                 ) : (
