@@ -294,6 +294,31 @@ export function getRedis() {
 }
 
 /**
+ * Generates a stable, deterministic job ID if the scraper doesn't provide a direct ID field.
+ * Extracts from URL or hashes the title + company to ensure duplicates are always resolved correctly.
+ */
+function resolveDeterministicJobId(item: any, idx: number): string {
+  let id = item.id || item.jobId || item.job_id || (item.job_details && item.job_details.id);
+  
+  const url = item.url || item.job_url || '';
+  if (!id && url) {
+    const match = url.match(/view\/(\d+)/) || url.match(/currentJobId=(\d+)/);
+    if (match) {
+      id = match[1];
+    }
+  }
+  
+  if (!id) {
+    const title = item.title || item.job_title || '';
+    const company = item.company || item.companyName || item.company_name || '';
+    const uniqueString = `${title.trim()}_${company.trim()}`;
+    id = `job_${Buffer.from(uniqueString).toString('base64').replace(/=/g, '').substring(0, 16)}`;
+  }
+  
+  return id;
+}
+
+/**
  * Triggers search (Apify or Bright Data depending on config).
  * In simulation mode, returns a mock snapshot ID.
  */
@@ -321,7 +346,7 @@ export async function triggerBrightDataSearch(): Promise<string> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           urls,
-          count: 40
+          count: 20
         })
       });
 
@@ -449,7 +474,7 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
       
       const items = await itemsRes.json() as any[];
       return items.map((item, idx) => {
-        const id = item.id || item.job_id || `job_${idx}_${Math.random().toString(36).substring(2, 6)}`;
+        const id = resolveDeterministicJobId(item, idx);
         const title = item.title || item.job_title || '';
         const company = item.company || item.companyName || item.company_name || 'Unknown Company';
         const location = item.location || 'Germany';
@@ -513,7 +538,7 @@ export async function fetchBrightDataResults(snapshotId: string): Promise<Linked
 
     return records.map((item: any, idx: number) => {
       // Normalize fields securely
-      const id = item.id || item.job_id || `job_${idx}_${Math.random().toString(36).substring(2, 6)}`;
+      const id = resolveDeterministicJobId(item, idx);
       const title = item.title || item.job_title || '';
       const company = item.company || item.company_name || 'Unknown Company';
       const location = item.location || 'Germany';
